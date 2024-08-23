@@ -1,0 +1,3 @@
+Command Creation
+- When creating new commands, add them under the corresponding folder.
+- Folders will act like the categories of the many commands. (e.g. Utility)

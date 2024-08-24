@@ -32,6 +32,33 @@ for (const folder of commandFolders) {
     }
 }
 
+// Create an event listener for when a command is executed
+// The interactionCreate event fires the arrow function and passes in a BaseInteraction object under the alias "interaction".
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isChatInputCommand()) return; // Filter out non-slash commands
+    
+    // Check if the command exists in the Collection made earlier.
+    const command = interaction.client.commands.get(interaction.commandName);
+
+    // End if the command isnt found
+    if (!command) {
+        console.error(`No command matching ${interaction.commandName} was found.`); // commandName is the name of the command called.
+        return;
+    }
+
+    // Try to execute the command and catch any errors if needed.
+    try {
+        await command.execute(interaction); // Perform the "execute" function in the command's module script
+    } catch (err) {
+        console.error(err);
+        if (interaction.replied || interaction.deferred) { // Interaction has already been replied to or deferred, show an error.
+            await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+        } else {
+            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+        }
+    }
+});
+
 // When the client is ready, run this code (only once).
 client.once(Events.ClientReady, readyClient => {
 	console.log(`Ready! Logged in as ${readyClient.user.tag}`);

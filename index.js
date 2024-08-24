@@ -1,17 +1,19 @@
-// Bring in the big guns
+//------------------------------Declare Variables------------------------------------
 const fs = require('node:fs'); // Node's native file system module.
 const path = require('node:path'); // Node's native path utility module.
-const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
+const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { token } = require('./config.json');
 
 
 // Create a new Discord client
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
+//---------------------------------Main Script----------------------------------------
 // Adds a new property called "commands" to the client instance
 // This allows us to access our commands in other files.
 client.commands = new Collection(); // The collection class is an extension of the Map class, which we will be using to store commands
 
+// 1. Initiate & Read Commands
 const foldersPath = path.join(__dirname, 'commands'); // Constructs a path to the commands directory. "__dirname" is an environment variable for the root dir.
 const commandFolders = fs.readdirSync(foldersPath); // Reads the path to the directory and returns an array of the folders in the "commands" directory.
 
@@ -32,37 +34,22 @@ for (const folder of commandFolders) {
     }
 }
 
-// Create an event listener for when a command is executed
-// The interactionCreate event fires the arrow function and passes in a BaseInteraction object under the alias "interaction".
-client.on(Events.InteractionCreate, async interaction => {
-    if (!interaction.isChatInputCommand()) return; // Filter out non-slash commands
-    
-    // Check if the command exists in the Collection made earlier.
-    const command = interaction.client.commands.get(interaction.commandName);
+// 2. Initiate and Fire the Event files
+const eventsPath = path.join(__dirname, 'events');
+const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 
-    // End if the command isnt found
-    if (!command) {
-        console.error(`No command matching ${interaction.commandName} was found.`); // commandName is the name of the command called.
-        return;
+for (const file of eventFiles) {
+    const filePath = path.join(eventsPath, file);
+    const event = require(filePath); // Require the event file and store it in the event variable
+
+    if (event.once) {
+        client.once(event.name, (...args) => event.execute(...args));
+    } else {
+        client.on(event.name, (...args) => event.execute(...args));
+        // e.g. client.on(Events.InteractionCreate, async interaction => {...}); where interaction is ...args
     }
+}
 
-    // Try to execute the command and catch any errors if needed.
-    try {
-        await command.execute(interaction); // Perform the "execute" function in the command's module script
-    } catch (err) {
-        console.error(err);
-        if (interaction.replied || interaction.deferred) { // Interaction has already been replied to or deferred, show an error.
-            await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
-        } else {
-            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-        }
-    }
-});
-
-// When the client is ready, run this code (only once).
-client.once(Events.ClientReady, readyClient => {
-	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
-});
 
 // Log in to Discord with your client's token
 client.login(token);

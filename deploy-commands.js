@@ -1,5 +1,5 @@
 //------------------------------Declare Variables------------------------------------
-const { REST, Routes } = require('discord.js');
+const { REST, Routes, Client, GatewayIntentBits } = require('discord.js');
 const { clientId, guildId, token } = require('./config.json'); //Import the properties from the config file.
 const fs = require('node:fs');
 const path = require('node:path');
@@ -37,9 +37,12 @@ const deploy = async () => {
 
         // put() fully refreshes all commands in the server(guild) with the current set
         const data = await rest.put(
-            Routes.applicationCommands(clientId),
+            Routes.applicationGuildCommands(clientId, guildId),
             { body: commands },
         );
+
+        // If needed, body: [] will refresh the client/guild commands accordingly
+        // Do this only if you have to clear any dupes
 
         console.log(`Successfully reloaded ${data.length} application (/) commands.`);
 

@@ -1,5 +1,5 @@
 //------------------------------Declare Variables------------------------------------
-const { REST, Routes, Client, GatewayIntentBits } = require('discord.js');
+const { REST, Routes} = require('discord.js');
 const { clientId, guildId, token } = require('./config.json'); //Import the properties from the config file.
 const fs = require('node:fs');
 const path = require('node:path');

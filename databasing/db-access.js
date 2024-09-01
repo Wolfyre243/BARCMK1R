@@ -21,8 +21,8 @@ const query = async (text, params) => {
             console.log(err);
         }
         const duration = Date.now() - startTime;
-        console.log(`Query \"${text}\" executed in ${duration}ms; rows: ${result.rowCount}`);
-        return result;
+        console.log(`Query executed in ${duration}ms; rows: ${result.rowCount}`);
+        return result; // make it return the duration as well.
 };
 
 module.exports = { pool: pool, query: query };

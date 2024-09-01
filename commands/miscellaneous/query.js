@@ -17,10 +17,14 @@ module.exports = {
             const result = await db.query(`
                 SELECT * 
                 FROM actor
-                LIMIT 3
+                LIMIT 5
             `)
 
-            await interaction.reply(`First result:\n${result.rows[0].first_name}`);
+            for (let i = 0; i < 5; i++) {
+                interaction.channel.send(`${i}. ${result.rows[i].first_name}`);
+            }
+            // wait for the loop to complete first.
+            await interaction.reply("Query successful");
 
 		} catch (err) {
 			console.log(err);

@@ -9,23 +9,20 @@ module.exports = {
     async execute(interaction) {
         try {
             // Connect to the PostgreSQL database.
-			await db.pool.connect().then(async () => {
-                console.log('Connected to PostgreSQL.\nDatabase: test-db');
-            });
+			const db_client = await db.getClient();
 
             //Perform the query
-            const result = await db.query(`
-                SELECT * 
-                FROM actor
-                LIMIT 5
-            `)
-
-            for (let i = 0; i < 5; i++) {
-                interaction.channel.send(`${i}. ${result.rows[i].first_name}`);
+            const result = await db.query(`SELECT * FROM users`);
+            // Print out the results
+            for await (const row of result.rows) {
+                await interaction.channel.send(`${row.id}. ${row.name} Age: ${row.age}`);
             }
             // wait for the loop to complete first.
+            
             await interaction.reply("Query successful");
-
+            db_client.release();
+            
+            
 		} catch (err) {
 			console.log(err);
 		}

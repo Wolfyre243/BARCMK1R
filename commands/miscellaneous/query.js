@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { db_client } = require('../../databasing/database-client.js')
+const db = require('../../databasing/db-access.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -7,18 +7,23 @@ module.exports = {
             .setDescription('A command to test querying a database using a discord bot.'),
 
     async execute(interaction) {
-        db_client.query(`
-            SELECT * 
-            FROM actor
-            LIMIT 3
-            `, async (err, result) => {
-                if (!err) {
-                    await interaction.reply(`First 3 query results: \n ${result.rows}`);
-                } else {
-                    await interaction.reply("An error occurred during the query.")
-                    console.log(err);
-                }
-            }
-        )
+        try {
+            // Connect to the PostgreSQL database.
+			await db.pool.connect().then(async () => {
+                console.log('Connected to PostgreSQL.\nDatabase: test-db');
+            });
+
+            //Perform the query
+            const result = await db.query(`
+                SELECT * 
+                FROM actor
+                LIMIT 3
+            `)
+
+            await interaction.reply(`First result:\n${result.rows[0].first_name}`);
+
+		} catch (err) {
+			console.log(err);
+		}
     }
 }

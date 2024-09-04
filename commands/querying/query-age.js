@@ -4,7 +4,7 @@ const db = require('../../databasing/db-access.js');
 module.exports = {
     data: new SlashCommandBuilder()
             .setName('query-age') // /query-age
-            .setDescription('A command to retrieve all users with the specified age.')
+            .setDescription('!!DEPRECIATED!! A command to retrieve all users with the specified age.')
             .addNumberOption(option => 
                 option.setName('age') // Name of the option
                     .setDescription('The age to search')

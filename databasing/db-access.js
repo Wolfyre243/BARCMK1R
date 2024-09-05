@@ -63,4 +63,29 @@ const getClient = async () => {
     return client;
 }
 
-module.exports = { getClient: getClient, query: query, pool: pool };
+// This is the getUIDByDiscord method.
+// It tries fetching user's corresponding UID through their discord ID in the database.
+// After which, the method will return a Promise that resolves with the value of the user's UID,
+// and rejects with an error message stating that the user does not exist.
+const getUIDByDiscord = async (user_discordID) => {
+    const client = await pool.connect(); // Connect to the pool and retreive the client
+    // Query the database and check if the user exists
+    return new Promise(async (resolve, reject) => {
+        const userID_result = await client.query(
+            `SELECT userid FROM discord_users WHERE discord_id='${user_discordID}'`
+        );
+        if (userID_result.rows.length) {
+            resolve(userID_result.rows[0].userid);
+        }
+        else {
+            reject('User does not exist, or there was an error querying the database.');
+        }
+    })
+}
+
+module.exports = { 
+    getClient: getClient,
+    query: query, 
+    pool: pool, 
+    getUIDByDiscord: getUIDByDiscord
+};

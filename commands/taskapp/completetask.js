@@ -4,30 +4,41 @@ const db = require('../../databasing/db-access.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
-            .setName('displaytasks')
-            .setDescription('Displays all the user\'s tasks (filtering coming soon)'),
+            .setName('completetask')
+            .setDescription('Completes a task based on its ID')
+            .addNumberOption(option => 
+                option.setName('task-id') // Name of the option
+                    .setDescription('The ID of the task to complete')
+                    .setRequired(true)
+            ),
             
     async execute(interaction) {
+        // Obtain ID of task to mark as completed
+        const taskid = interaction.options.getNumber('task-id')
         // First check if the user exists in the database
         db.getUIDByDiscord(interaction.user.id)
             .then(async (userid) => { // Resolved, user exists!
                 try {
-                    // Connect to the PostgreSQL database and retrieve the user's tasks.
+                    // Connect to the PostgreSQL database and update the task
+                    // TODO: Add validation; if task is already complete, do not execute the query.
                     const db_client = await db.getClient();
                     const tasks_result = await db_client.query(
-                        `SELECT * FROM tasks WHERE userid = ${userid};`
+                        `UPDATE tasks
+                        SET completed = true
+                        WHERE userid = ${userid} AND taskid = ${taskid}
+                        RETURNING *;`
                     );
+                    // If successful, notify the user about the update, and display the updated tasks.
                     // Create and send the embed
                     const embed = await embedTemplates.tasks_template(tasks_result, interaction.user.username);
                     await interaction.channel.send({ embeds: [embed] });
                     
-                    await interaction.reply("Here are your tasks!");
+                    await interaction.reply(`Task with ID: ${taskid} updated.`);
                     db_client.release();
                 } catch (err) {
                     console.log(`Error querying tasks: ${err}`);
-                    await interaction.reply('An error occurred while trying to retrieve your tasks.');
+                    await interaction.reply('Invalid task ID!');
                 }
-                
 
             }, async (error) => { // Rejected
                 console.log(error);
